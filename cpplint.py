@@ -135,7 +135,7 @@ Syntax: cpplint.py [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
 
     linelength=digits
       This is the allowed line length for the project. The default value is
-      80 characters.
+      120 characters.
 
       Examples:
         --linelength=120
@@ -161,8 +161,7 @@ Syntax: cpplint.py [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
       set noparent
       filter=+filter1,-filter2,...
       exclude_files=regex
-      linelength=80
-      root=subdir
+      linelength=120
       headers=x,y,...
 
     "set noparent" option prevents cpplint from traversing directory tree
@@ -179,9 +178,6 @@ Syntax: cpplint.py [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
 
     "linelength" allows to specify the allowed line length for the project.
 
-    The "root" option is similar in function to the --root flag (see example
-    above). Paths are relative to the directory of the CPPLINT.cfg.
-
     The "headers" option is similar in function to the --headers flag
     (see example above).
 
@@ -196,6 +192,8 @@ Syntax: cpplint.py [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
     build/include_alpha as well as excludes all .cc from being
     processed by linter, in the current directory (where the .cfg
     file is located) and all sub-directories.
+
+    @zedzhai: fixed 2021.03.31
 """
 
 # We categorize each error message we print.  Here are the categories.
@@ -555,7 +553,7 @@ _root_debug = False
 
 # The allowed line length of files.
 # This is set by --linelength flag.
-_line_length = 80
+_line_length = 120
 
 # The allowed extensions for file names
 # This is set by --extensions flag.
