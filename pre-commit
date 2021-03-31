@@ -20,7 +20,6 @@ exec 1>&2
 
 cpplint=cpplint
 sum=0
-filters='-whitespace/line_length,-build/include'
 
 # for cpp
 for file in $(git diff-index --name-status $against -- | grep -E '\.[ch](pp)?$' | awk '{print $2}'); do

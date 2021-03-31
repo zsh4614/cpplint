@@ -1930,14 +1930,12 @@ def CheckForHeaderGuard(filename, clean_lines, error):
 
   if not ifndef or not define or ifndef != define:
     error(filename, 0, 'build/header_guard', 5,
-          'No #ifndef header guard found, MUST have header guard!')
+          'No #ifndef header guard found, suggested CPP variable is: %s' %
+          cppvar)
     return
 
   # The guard should be PATH_FILE_H_, but we also allow PATH_FILE_H__
   # for backward compatibility.
-
-  # @zedzhai: dont check header guard contains, so dont point out cppvar.
-  '''
   if ifndef != cppvar:
     error_level = 0
     if ifndef != cppvar + '_':
@@ -1947,7 +1945,7 @@ def CheckForHeaderGuard(filename, clean_lines, error):
                             error)
     error(filename, ifndef_linenum, 'build/header_guard', error_level,
           '#ifndef header guard has wrong style, please use: %s' % cppvar)
-  '''
+
   # Check for "//" comments on endif line.
   ParseNolintSuppressions(filename, raw_lines[endif_linenum], endif_linenum,
                           error)
@@ -1956,7 +1954,7 @@ def CheckForHeaderGuard(filename, clean_lines, error):
     if match.group(1) == '_':
       # Issue low severity warning for deprecated double trailing underscore
       error(filename, endif_linenum, 'build/header_guard', 0,
-            '#endif line should be "#endif  // ..."')
+            '#endif line should be "#endif  // %s"' % cppvar)
     return
 
   # Didn't find the corresponding "//" comment.  If this file does not
@@ -1980,7 +1978,7 @@ def CheckForHeaderGuard(filename, clean_lines, error):
 
   # Didn't find anything
   error(filename, endif_linenum, 'build/header_guard', 5,
-        '#endif line should be "#endif  // ..."')
+        '#endif line should be "#endif  // %s"' % cppvar)
 
 
 def CheckHeaderFileIncluded(filename, include_state, error):
@@ -2830,14 +2828,15 @@ def CheckForNonStandardConstructs(filename, clean_lines, linenum,
   # For the rest, work with both comments and strings removed.
   line = clean_lines.elided[linenum]
 
-  if Search(r'\b(const|volatile|void|char|short|int|long'
-            r'|float|double|signed|unsigned'
-            r'|schar|u?int8|u?int16|u?int32|u?int64)'
-            r'\s+(register|static|extern|typedef)\b',
-            line):
-    error(filename, linenum, 'build/storage_class', 5,
-          'Storage-class specifier (static, extern, typedef, etc) should be '
-          'at the beginning of the declaration.')
+  # @zedzhai: fix, remove
+  # if Search(r'\b(const|volatile|void|char|short|int|long'
+  #           r'|float|double|signed|unsigned'
+  #           r'|schar|u?int8|u?int16|u?int32|u?int64)'
+  #           r'\s+(register|static|extern|typedef)\b',
+  #           line):
+  #   error(filename, linenum, 'build/storage_class', 5,
+  #         'Storage-class specifier (static, extern, typedef, etc) should be '
+  #         'at the beginning of the declaration.')
 
   if Match(r'\s*#\s*endif\s*[^/\s]+', line):
     error(filename, linenum, 'build/endif_comment', 5,
@@ -4793,43 +4792,45 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
           'Use using-declarations instead.')
 
   # Detect variable-length arrays.
-  match = Match(r'\s*(.+::)?(\w+) [a-z]\w*\[(.+)];', line)
-  if (match and match.group(2) != 'return' and match.group(2) != 'delete' and
-      match.group(3).find(']') == -1):
-    # Split the size using space and arithmetic operators as delimiters.
-    # If any of the resulting tokens are not compile time constants then
-    # report the error.
-    tokens = re.split(r'\s|\+|\-|\*|\/|<<|>>]', match.group(3))
-    is_const = True
-    skip_next = False
-    for tok in tokens:
-      if skip_next:
-        skip_next = False
-        continue
 
-      if Search(r'sizeof\(.+\)', tok): continue
-      if Search(r'arraysize\(\w+\)', tok): continue
+  # @zedzhai: fix remove
+  # match = Match(r'\s*(.+::)?(\w+) [a-z]\w*\[(.+)];', line)
+  # if (match and match.group(2) != 'return' and match.group(2) != 'delete' and
+  #     match.group(3).find(']') == -1):
+  #   # Split the size using space and arithmetic operators as delimiters.
+  #   # If any of the resulting tokens are not compile time constants then
+  #   # report the error.
+  #   tokens = re.split(r'\s|\+|\-|\*|\/|<<|>>]', match.group(3))
+  #   is_const = True
+  #   skip_next = False
+  #   for tok in tokens:
+  #     if skip_next:
+  #       skip_next = False
+  #       continue
 
-      tok = tok.lstrip('(')
-      tok = tok.rstrip(')')
-      if not tok: continue
-      if Match(r'\d+', tok): continue
-      if Match(r'0[xX][0-9a-fA-F]+', tok): continue
-      if Match(r'k[A-Z0-9]\w*', tok): continue
-      if Match(r'(.+::)?k[A-Z0-9]\w*', tok): continue
-      if Match(r'(.+::)?[A-Z][A-Z0-9_]*', tok): continue
-      # A catch all for tricky sizeof cases, including 'sizeof expression',
-      # 'sizeof(*type)', 'sizeof(const type)', 'sizeof(struct StructName)'
-      # requires skipping the next token because we split on ' ' and '*'.
-      if tok.startswith('sizeof'):
-        skip_next = True
-        continue
-      is_const = False
-      break
-    if not is_const:
-      error(filename, linenum, 'runtime/arrays', 1,
-            'Do not use variable-length arrays.  Use an appropriately named '
-            "('k' followed by CamelCase) compile-time constant for the size.")
+  #     if Search(r'sizeof\(.+\)', tok): continue
+  #     if Search(r'arraysize\(\w+\)', tok): continue
+
+  #     tok = tok.lstrip('(')
+  #     tok = tok.rstrip(')')
+  #     if not tok: continue
+  #     if Match(r'\d+', tok): continue
+  #     if Match(r'0[xX][0-9a-fA-F]+', tok): continue
+  #     if Match(r'k[A-Z0-9]\w*', tok): continue
+  #     if Match(r'(.+::)?k[A-Z0-9]\w*', tok): continue
+  #     if Match(r'(.+::)?[A-Z][A-Z0-9_]*', tok): continue
+  #     # A catch all for tricky sizeof cases, including 'sizeof expression',
+  #     # 'sizeof(*type)', 'sizeof(const type)', 'sizeof(struct StructName)'
+  #     # requires skipping the next token because we split on ' ' and '*'.
+  #     if tok.startswith('sizeof'):
+  #       skip_next = True
+  #       continue
+  #     is_const = False
+  #     break
+  #   if not is_const:
+  #     error(filename, linenum, 'runtime/arrays', 1,
+  #           'Do not use variable-length arrays.  Use an appropriately named '
+  #           "('k' followed by CamelCase) compile-time constant for the size.")
 
   # Check for use of unnamed namespaces in header files.  Registration
   # macros are typically OK, so we allow use of "namespace {" on lines
@@ -4898,10 +4899,11 @@ def CheckGlobalStatic(filename, clean_lines, linenum, error):
       error(filename, linenum, 'runtime/string', 4,
             'Static/global string variables are not permitted.')
 
-  if (Search(r'\b([A-Za-z0-9_]*_)\(\1\)', line) or
-      Search(r'\b([A-Za-z0-9_]*_)\(CHECK_NOTNULL\(\1\)\)', line)):
-    error(filename, linenum, 'runtime/init', 4,
-          'You seem to be initializing a member variable with itself.')
+  # @zedzhai: fix, remove
+  # if (Search(r'\b([A-Za-z0-9_]*_)\(\1\)', line) or
+  #     Search(r'\b([A-Za-z0-9_]*_)\(CHECK_NOTNULL\(\1\)\)', line)):
+  #   error(filename, linenum, 'runtime/init', 4,
+  #         # 'You seem to be initializing a member variable with itself.')
 
 
 def CheckPrintf(filename, clean_lines, linenum, error):
@@ -5258,7 +5260,7 @@ def CheckCasts(filename, clean_lines, linenum, error):
             extended_line += clean_lines.elided[y2 + 1]
           if Match(r'\s*(?:->|\[)', extended_line):
             parenthesis_error = True
-    '''
+
     if parenthesis_error:
       error(filename, linenum, 'readability/casting', 4,
             ('Are you taking an address of something dereferenced '
@@ -5269,7 +5271,7 @@ def CheckCasts(filename, clean_lines, linenum, error):
             ('Are you taking an address of a cast?  '
              'This is dangerous: could be a temp var.  '
              'Take the address before doing the cast, rather than after'))
-    '''
+
 
 def CheckCStyleCast(filename, clean_lines, linenum, cast_type, pattern, error):
   """Checks for a C-style cast by looking for the pattern.
@@ -5589,13 +5591,13 @@ def CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error,
     return
 
   # All the lines have been processed, report the errors found.
-
-  for required_header_unstripped in required:
-    template = required[required_header_unstripped][1]
-    if required_header_unstripped.strip('<>"') not in include_dict:
-      error(filename, required[required_header_unstripped][0],
-            'build/include_what_you_use', 4,
-            'Add #include ' + required_header_unstripped + ' for ' + template)
+  # @zedzhai: fix, remove build/include_what_you_use.
+  # for required_header_unstripped in required:
+  #   template = required[required_header_unstripped][1]
+  #   if required_header_unstripped.strip('<>"') not in include_dict:
+  #     error(filename, required[required_header_unstripped][0],
+  #           'build/include_what_you_use', 4,
+  #           'Add #include ' + required_header_unstripped + ' for ' + template)
 
 
 _RE_PATTERN_EXPLICIT_MAKEPAIR = re.compile(r'\bmake_pair\s*<')
@@ -5844,19 +5846,20 @@ def FlagCxx11Features(filename, clean_lines, linenum, error):
           ('C++ TR1 headers such as <%s> are unapproved.') % include.group(1))
 
   # Flag unapproved C++11 headers.
-  if include and include.group(1) in ('cfenv',
-                                      'condition_variable',
-                                      'fenv.h',
-                                      'future',
-                                      'mutex',
-                                      'thread',
-                                      'chrono',
-                                      'ratio',
-                                      'regex',
-                                      'system_error',
-                                     ):
-    error(filename, linenum, 'build/c++11', 5,
-          ('<%s> is an unapproved C++11 header.') % include.group(1))
+  # @zedzhai: fix, remove build/c++11
+  # if include and include.group(1) in ('cfenv',
+  #                                     'condition_variable',
+  #                                     'fenv.h',
+  #                                     'future',
+  #                                     'mutex',
+  #                                     'thread',
+  #                                     'chrono',
+  #                                     'ratio',
+  #                                     'regex',
+  #                                     'system_error',
+  #                                    ):
+  #   error(filename, linenum, 'build/c++11', 5,
+  #         ('<%s> is an unapproved C++11 header.') % include.group(1))
 
   # The only place where we need to worry about C++11 keywords and library
   # features in preprocessor directives is in macro definitions.
@@ -5865,16 +5868,18 @@ def FlagCxx11Features(filename, clean_lines, linenum, error):
   # These are classes and free functions.  The classes are always
   # mentioned as std::*, but we only catch the free functions if
   # they're not found by ADL.  They're alphabetical by header.
-  for top_name in (
-      # type_traits
-      'alignment_of',
-      'aligned_union',
-      ):
-    if Search(r'\bstd::%s\b' % top_name, line):
-      error(filename, linenum, 'build/c++11', 5,
-            ('std::%s is an unapproved C++11 class or function.  Send c-style '
-             'an example of where it would make your code more readable, and '
-             'they may let you use it.') % top_name)
+
+  # @zedzhai: fix, remove build/c++11
+  # for top_name in (
+  #     # type_traits
+  #     'alignment_of',
+  #     'aligned_union',
+  #     ):
+  #   if Search(r'\bstd::%s\b' % top_name, line):
+  #     error(filename, linenum, 'build/c++11', 5,
+  #           ('std::%s is an unapproved C++11 class or function.  Send c-style '
+  #            'an example of where it would make your code more readable, and '
+  #            'they may let you use it.') % top_name)
 
 
 def FlagCxx14Features(filename, clean_lines, linenum, error):
@@ -5958,6 +5963,7 @@ def ProcessConfigOverrides(filename):
   """
 
   abs_filename = os.path.abspath(filename)
+  const_filename = abs_filename
   cfg_filters = []
   keep_looking = True
   while keep_looking:
@@ -5969,7 +5975,7 @@ def ProcessConfigOverrides(filename):
     abs_filename = abs_path
     if not os.path.isfile(cfg_file):
       continue
-
+    filename_from_root = const_filename.replace(abs_path + '/', '')
     try:
       with open(cfg_file) as file_handle:
         for line in file_handle:
@@ -5991,17 +5997,35 @@ def ProcessConfigOverrides(filename):
             # and we found the .cfg file at /foo/CPPLINT.cfg, then the config
             # file's "exclude_files" filter is meant to be checked against "bar"
             # and not "baz" nor "bar/baz.cc".
-            if base_name:
-              pattern = re.compile(val)
-              if pattern.match(base_name):
+
+            #@zedzhai: fix only use one top-level CPPLINT.cfg
+            exclude_list = val.split(',')
+            for exclude_file in exclude_list:
+              pattern = re.compile(exclude_file)
+              if pattern.match(filename_from_root):
                 if _cpplint_state.quiet:
-                  # Suppress "Ignoring file" warning when using --quiet.
+                    # Suppress "Ignoring file" warning when using --quiet.
                   return False
                 sys.stderr.write('Ignoring "%s": file excluded by "%s". '
                                  'File path component "%s" matches '
                                  'pattern "%s"\n' %
-                                 (filename, cfg_file, base_name, val))
+                                 (filename, cfg_file, filename_from_root, exclude_file))
                 return False
+            
+            # print(const_filename)
+            # if base_name:
+            #   pattern = re.compile(val)
+            #   print(pattern)
+            #   if pattern.match(const_filename):
+            #     print('+++++++++++++++++++++++++++++++++++++++++++')
+            #     if _cpplint_state.quiet:
+            #       # Suppress "Ignoring file" warning when using --quiet.
+            #       return False
+            #     sys.stderr.write('Ignoring "%s": file excluded by "%s". '
+            #                      'File path component "%s" matches '
+            #                      'pattern "%s"\n' %
+            #                      (filename, cfg_file, const_filename, val))
+            #     return False
           elif name == 'linelength':
             global _line_length
             try:
