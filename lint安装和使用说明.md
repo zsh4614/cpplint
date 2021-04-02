@@ -2,7 +2,11 @@
 
 #### 0.说明
 
-​		cpplint是一款c++代码风格和质量保证工具，用于帮助团队不同开发者使用相同的代码规范，保证工程代码质量。但是cpplint并不能保证发现代码中的所有问题，也不会尝试修复解决这些问题，所以，在使用cpplint之前请仔细阅读《C++代码风格指南》。在此，使用git的hook机制在git commit之前检查代码风格是否合规，如果不合规，则可能提交失败。
+​		cpplint是一款c++代码风格和质量保证工具，用于帮助团队不同开发者使用相同的代码规范，保证工程代码质量。但是cpplint并不能保证发现代码中的所有问题，也不会尝试修复解决这些问题，所以，在使用cpplint之前请仔细阅读《C++代码风格指南》。在此，使用git的hook机制在git commit之前检查代码风格是否合规，如果不合规，则可能提交失败。目前支持代码风格检查和CHANGELOG检查
+
+
+
+> #### 代码风格检查工具安装和使用
 
 #### 1.安装
 
@@ -46,7 +50,7 @@ chmod +x ./.git/hooks/pre-commit
 
 **版本维护者:**
 
-2.将pre-commit拷贝到项目的.githooks/目录，赋予可执行权限，上传到远程仓库
+2.项目根目录下新建.githooks/目录，将pre-commit拷贝到项目的.githooks/目录，赋予可执行权限，上传到远程仓库
 
 **模块开发者:**
 
@@ -58,9 +62,8 @@ chmod +x ./.git/hooks/pre-commit
 对于2.9.0及以上版本的git:
 git config core.hooksPath .githooks
 
-对于2.6.0以下版本的git:
-find .git/hooks -type l -exec rm {} \;
-find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+对于2.9.0以下版本的git,手动将pre-commit拷贝到.git/hooks/目录下:
+cp .githooks/pre-commit .git/hooks/
 ```
 
 #### 4.使用lint
@@ -116,13 +119,44 @@ headers=hpp,hxx
 
 3.如果确定某行报告的某类不合规是假阳性，可以临时通过在这一行行尾添加注释 `// NOLINT(category)`对该行禁用该类别lint,`// nolint`或者`// NOLINT(*)`代表对该行禁用所有类别的lint，并及时反馈。
 
-4.对项目开启lint并配置好CPPLINT.cfg之后，即可在执行git commit时对要提交的代码进行合规检查,推荐使用命令：
-
-`git commit -m "your message" > commit_log.txt 2>&1`
-
-将报告log到文件中，方便修改，修改之后重新commit，直到成功。
+4.对项目开启lint并配置好CPPLINT.cfg之后，即可在执行`git commit`时对要提交的代码风格自动进行合规检查,如果不合规，将commit失败，修改之后重新`git commit`，直到成功。
 
 
+
+> #### CHANGELOG（commit msg）检查工具安装和使用
+
+#### 对团队工程使用：
+
+##### 版本维护者
+
+1.下载commit-msg脚本：
+
+```
+wget https://git.io/JYKt7 -O commit-msg
+```
+
+2.项目根目录下新建.githooks/目录，将commit-msg拷贝到项目的.githooks/目录，赋予可执行权限，上传到远程仓库
+
+```
+mv commit-msg $(project_root)/.githooks/
+chmod +x $(project_root)/.githooks/commit-msg
+```
+
+##### 模块开发者
+
+1.更新本地仓库到最新版本
+
+2.进入工程根目录，启用changelog(commit msg)检查工具
+
+```
+对于2.9.0及以上版本的git:
+git config core.hooksPath .githooks
+
+对于2.9.0以下版本的git，手动将commit-msg拷贝到.git/hooks/下:
+cp .githooks/commit-msg .git/hooks/
+```
+
+3.commit时使用`git commit`命令，在终端将本次commit的CHANGELOG.MD的内容copy过来，书写CHANGELOG.MD请务必遵守《CHANGELOG规范》，否则将commit失败，修改CHANGELOG.MD后重新copy，直到commit成功。
 
 
 
