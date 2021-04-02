@@ -2681,7 +2681,7 @@ class NestingState(object):
     # @zedzhai: fix remove
     # if self.stack and isinstance(self.stack[-1], _ClassInfo):
     #   classinfo = self.stack[-1]
-    #   access_match = Match(
+    #   access_match = Match(whitespace/indent
     #       r'^(.*)\b(public|private|protected|signals)(\s+(?:slots\s*)?)?'
     #       r':(?:[^:]|$)',
     #       line)
