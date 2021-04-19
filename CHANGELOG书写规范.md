@@ -44,6 +44,8 @@ Docs: 修改changelog和commit msg书写规则。
 
 5.最新的changelog信息应放在CHANGELOG.MD文档的前面，日期降序排列
 
+**6.每次commit只能干一件事，即只有一种类别信息**
+
 
 
 > #### commit message规范
