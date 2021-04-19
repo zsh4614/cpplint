@@ -16,13 +16,17 @@
 # grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
 
 # This example catches duplicate Signed-off-by lines.
-
+line_num=1
 while read line
 do	
-	TYPE_MSG_PATTERN="^\*\*(Feat|Docs|Fix|Refactor|Perf|Test)\*\*$"
+	TYPE_MSG_PATTERN="^(Feat:|Docs:|Fix:|Refactor:|Perf:|Test:)[ ][\s\S]*"
 	SUBJECT_MSG_PATTERN="^- "
 	BLANKLINE_MSG_PATTERN="^$"
-	CEMMENT_MSG_PATTERN="^#"
+	CEMMENT_MSG_PATTERN="^#" 
+	if [[ $line =~ $TYPE_MSG_PATTERN ]] && [[ $line_num != 1 ]]; then
+		echo -e "\033[31mError: Only the first line can be commit type! \033[0m"
+	fi
+	let line_num++
 	if [[ $line =~ $TYPE_MSG_PATTERN ]] || [[ $line =~ $BLANKLINE_MSG_PATTERN ]] || [[ $line =~ $SUBJECT_MSG_PATTERN ]] || [[ $line =~ $CEMMENT_MSG_PATTERN ]]; then
 		continue
 	else
@@ -30,15 +34,10 @@ do
 		echo -e "\033[31mIrregular Commit Message: $line \033[0m"
 		echo -e "\033[31mPlease obey robosense commit message rules: modify your CHANGELOG.MD, then copy reguler commit message! \033[0m"
 		echo -e "\033[32mexample:
-**Feat**
+Feat: 一行总结性描述(必须的，注意冒号后面有空格)
 
-- feat_message1
-- feat_message2
-
-**Fix**
-
-- fix_message1
-- fix_message2\033[0m"
+- 说明1(可选的)
+- 说明2(可选的)"
 		exit 1
 	fi
 done < $1
